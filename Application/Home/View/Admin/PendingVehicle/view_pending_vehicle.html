@@ -29,15 +29,13 @@
 				<include file="Common:adminSidebar"/>
 				<div class="content pull-right">
 					<div class="information">
-						<h1 class="headline text-center bold">汽车管理 - <span class="h1-small">车辆查看</span></h1>
+						<h1 class="headline text-center bold">待发布车辆 - <span class="h1-small">信息查看</span></h1>
 						<?php 
 							$Dao = A('Admin');
 							$viewId = $_GET['pageId'];
 
-							$result = $Dao -> carSelectById($viewId);
+							$result = $Dao -> pendingVehicleSelectById($viewId);
 							$result = $result[0];
-
-							$cityId = $result['city_id'];
 
 							//图片数组
 							$imagesArr = explode(' | ', $result['images']);
@@ -66,6 +64,55 @@
 							<div class="submit-ctn mg-top">
 								<div class="left pull-left">
 									<div class="form-group">
+										<label class="col-sm-2 control-label" for="city_name"><p>城市</p></label>
+										<div class="col-sm-10">
+											<input name="city_name" id="city_name" type="text" readonly="readonly" class="form-control" placeholder="城市" autocomplete="off" required value="<?php echo $result['city_name']; ?>">
+										</div>
+									</div>
+
+									<div class="form-group">
+										<label class="col-sm-2 control-label" for="category"><p>类别</p></label>
+										<div class="col-sm-10">
+											<input name="category" id="category" type="text" readonly="readonly" class="form-control" placeholder="类别" autocomplete="off" required value="<?php echo $result['category']; ?>">
+										</div>
+									</div>
+
+									<div class="form-group">
+										<label class="col-sm-2 control-label" for="brand_name"><p>品牌</p></label>
+										<div class="col-sm-10">
+											<input name="brand_name" id="brand_name" type="text" readonly="readonly" class="form-control" placeholder="品牌" autocomplete="off" required value="<?php echo $result['brand_name']; ?>">
+										</div>
+									</div>
+
+									<div class="form-group">
+										<label class="col-sm-2 control-label" for="style_name"><p>车型</p></label>
+										<div class="col-sm-10">
+											<input name="style_name" id="style_name" type="text" readonly="readonly" class="form-control" placeholder="车型" autocomplete="off" required value="<?php echo $result['style_name']; ?>">
+										</div>
+									</div>
+
+									<div class="form-group">
+										<label class="col-sm-2 control-label" for="cost_price"><p>购车价(万)</p></label>
+										<div class="col-sm-10">
+											<input name="cost_price" id="cost_price" type="text" readonly="readonly" class="form-control" placeholder="购车价" autocomplete="off" required value="<?php echo $result['cost_price']; ?>">
+										</div>
+									</div>
+
+									<div class="form-group">
+										<label class="col-sm-2 control-label" for="price"><p>售价(万)</p></label>
+										<div class="col-sm-10">
+											<input name="price" id="price" type="text" readonly="readonly" class="form-control" placeholder="售价" autocomplete="off" required value="<?php echo $result['price']; ?>">
+										</div>
+									</div>
+
+									<div class="form-group">
+										<label class="col-sm-2 control-label" for="buy_time"><p>购车时间</p></label>
+										<div class="col-sm-10">
+											<input name="buy_time" id="buy_time" type="text" readonly="readonly" class="form-control" placeholder="购车时间" autocomplete="off" required value="<?php echo $result['buy_time']; ?>">
+										</div>
+									</div>
+
+									<div class="form-group">
 										<label class="col-sm-2 control-label" for="publish_time"><p>发布时间</p></label>
 										<div class="col-sm-10">
 											<input name="publish_time" id="publish_time" type="text" readonly="readonly" class="form-control" placeholder="发布时间" autocomplete="off" required value="<?php echo $result['publish_time']; ?>">
@@ -73,113 +120,74 @@
 									</div>
 
 									<div class="form-group">
-										<label class="col-sm-2 control-label" for="city"><p>城市</p></label>
+										<label class="col-sm-2 control-label" for="user_name"><p>发布人</p></label>
 										<div class="col-sm-10">
-											<select class="form-control tx-city allow" name="city" required="true" disabled>
-											  
-											</select>
+											<input name="user_name" id="user_name" type="text" readonly="readonly" class="form-control" placeholder="发布人" autocomplete="off" required value="<?php echo $result['user_name']; ?>">
 										</div>
 									</div>
 
 									<div class="form-group">
-										<label class="col-sm-2 control-label" for="category"><p>类别</p></label>
+										<label class="col-sm-2 control-label" for="user_phone"><p>电话</p></label>
 										<div class="col-sm-10">
-											<select class="form-control allow" name="category" required="true" disabled>
-											  <option <?php if($result['category'] == 1){ echo 'selected'; } ?> value="1">新车</option>
-											  <option <?php if($result['category'] == 2){ echo 'selected'; } ?> value="2">二手车</option>
-											</select>
+											<input name="user_phone" id="user_phone" type="text" readonly="readonly" class="form-control" placeholder="电话" autocomplete="off" required value="<?php echo $result['user_phone']; ?>">
 										</div>
 									</div>
 
 									<div class="form-group">
-										<label class="col-sm-2 control-label" for="brand_id"><p>品牌</p></label>
+										<label class="col-sm-2 control-label" for="status"><p>状态</p></label>
 										<div class="col-sm-10">
-											<select class="form-control brandSelect allow" name="brand_id" required="true" disabled>
-											  <?php 
-										      		$brandArr = $Dao -> carBrandSelectAll();
-										      		foreach($brandArr as $key => $val):
-										       ?>
-												  <option <?php if($result['brand_id'] == $val['id']){ echo 'selected'; $styleId = $val['id']; } ?> value="<?php echo $val['id']; ?>"><?php echo $val['name']; ?></option>
-										 	  <?php endforeach; ?>
-											</select>
-										</div>
-									</div>
-
-									<div class="form-group">
-										<label class="col-sm-2 control-label" for="style_id"><p>车型</p></label>
-										<div class="col-sm-10">
-											<select class="form-control styleSelect allow" name="style_id" required="true" disabled>
-											  <?php 
-										      		$styleArr = $Dao -> carStyleSelectByBrandId($result['brand_id']);
-										      		foreach($styleArr as $key => $val):
-										       ?>
-												  <option <?php if($result['style_id'] == $val['id']){ echo 'selected'; } ?> value="<?php echo $val['id']; ?>"><?php echo $val['name']; ?></option>
-										 	  <?php endforeach; ?>
-											</select>
-										</div>
-									</div>
-									<div class="form-group">
-										<label class="col-sm-2 control-label" for="buy_time"><p>购车年月</p></label>
-										<div class="col-sm-10">
-											<input name="buy_time" id="buy_time" type="text" readonly="readonly" class="form-control allow" placeholder="购车年月" autocomplete="off" required value="<?php echo $result['buy_time']; ?>">
-										</div>
-									</div>
-									
-									<div class="form-group">
-										<label class="col-sm-2 control-label" for="cost_price"><p>购车总价(万)</p></label>
-										<div class="col-sm-10">
-											<input name="cost_price" id="cost_price" type="number" readonly="readonly" class="form-control allow" placeholder="购车总价" autocomplete="off" required value="<?php echo $result['cost_price']; ?>">
-										</div>
-									</div>
-									<div class="form-group">
-										<label class="col-sm-2 control-label" for="price"><p>售价(万)</p></label>
-										<div class="col-sm-10">
-											<input name="price" id="price" type="number" readonly="readonly" class="form-control allow" placeholder="售价" autocomplete="off" required value="<?php echo $result['price']; ?>">
+											<input name="status" type="text" readonly="readonly" class="form-control" placeholder="状态" autocomplete="off" required value="<?php if($result['status'] == '0'){echo '待审核';} if($result['status'] == '1'){echo '已完成';} ?>">
 										</div>
 									</div>
 								</div>
 
 								<div class="right pull-right">
 									<div class="form-group">
-										<label class="col-sm-2 control-label" for="color"><p>车辆颜色</p></label>
+										<label class="col-sm-2 control-label" for="mileage"><p>里程(万)</p></label>
 										<div class="col-sm-10">
-											<input name="color" id="color" type="text" readonly="readonly" class="form-control allow" placeholder="车辆颜色" autocomplete="off" required value="<?php echo $result['color']; ?>">
+											<input name="mileage" id="mileage" type="text" readonly="readonly" class="form-control" placeholder="里程" autocomplete="off" required value="<?php echo $result['mileage']; ?>">
 										</div>
 									</div>
+
 									<div class="form-group">
 										<label class="col-sm-2 control-label" for="output"><p>排量</p></label>
 										<div class="col-sm-10">
-											<input name="output" id="output" type="text" readonly="readonly" class="form-control allow" placeholder="排量" autocomplete="off" required value="<?php echo $result['output']; ?>">
+											<input name="output" id="output" type="text" readonly="readonly" class="form-control" placeholder="排量" autocomplete="off" required value="<?php echo $result['output']; ?>">
 										</div>
 									</div>
+
 									<div class="form-group">
-										<label class="col-sm-2 control-label" for="mileage"><p>里程(万)</p></label>
+										<label class="col-sm-2 control-label" for="detail"><p>变速箱</p></label>
 										<div class="col-sm-10">
-											<input name="mileage" id="mileage" type="number" readonly="readonly" class="form-control allow" placeholder="里程" autocomplete="off" required value="<?php echo $result['mileage']; ?>">
+											<input name="detail" id="detail" type="text" readonly="readonly" class="form-control" placeholder="变速箱" autocomplete="off" required value="<?php echo $result['detail']; ?>">
 										</div>
 									</div>
+
 									<div class="form-group">
-										<label class="col-sm-2 control-label" for="detail"><p>详情</p></label>
+										<label class="col-sm-2 control-label" for="color"><p>颜色</p></label>
 										<div class="col-sm-10">
-											<input name="detail" id="detail" type="text" readonly="readonly" class="form-control allow" placeholder="详情" autocomplete="off" required value="<?php echo $result['detail']; ?>">
+											<input name="color" id="color" type="text" readonly="readonly" class="form-control" placeholder="颜色" autocomplete="off" required value="<?php echo $result['color']; ?>">
 										</div>
 									</div>
+
 									<div class="form-group">
 										<label class="col-sm-2 control-label" for="situation"><p>保养情况</p></label>
 										<div class="col-sm-10">
-											<input name="situation" id="situation" type="text" readonly="readonly" class="form-control allow" placeholder="保养情况" autocomplete="off" required value="<?php echo $result['situation']; ?>">
+											<input name="situation" id="situation" type="text" readonly="readonly" class="form-control" placeholder="保养情况" autocomplete="off" required value="<?php echo $result['situation']; ?>">
 										</div>
 									</div>
+
 									<div class="form-group">
 										<label class="col-sm-2 control-label" for="factory"><p>生产厂商</p></label>
 										<div class="col-sm-10">
-											<input name="factory" id="factory" type="text" readonly="readonly" class="form-control allow" placeholder="生产厂商" autocomplete="off" required value="<?php echo $result['factory']; ?>">
+											<input name="factory" id="factory" type="text" readonly="readonly" class="form-control" placeholder="生产厂商" autocomplete="off" required value="<?php echo $result['factory']; ?>">
 										</div>
 									</div>
+
 									<div class="form-group">
 										<label class="col-sm-2 control-label" for="advantage"><p>配置亮点</p></label>
 										<div class="col-sm-10">
-											<input name="advantage" id="advantage" type="text" readonly="readonly" class="form-control allow" placeholder="配置亮点" autocomplete="off" required value="<?php echo $result['advantage']; ?>">
+											<input name="advantage" id="advantage" type="text" readonly="readonly" class="form-control" placeholder="配置亮点" autocomplete="off" required value="<?php echo $result['advantage']; ?>">
 										</div>
 									</div>
 
@@ -195,7 +203,7 @@
 												 ?>
 												 	<div class="image-control inblk relative">
 												 		<img style="width: 120px; height: 120px;" class="photo-ctn mg-top" src="__ROOT__<?php echo $val; ?>" alt="">
-												 		<div class="image-control-handle">
+												 		<!-- <div class="image-control-handle">
 												 			<div class="cus-table">
 												 				<div class="cus-table-cell">
 												 					<div class="entry">
@@ -206,19 +214,19 @@
 												 					</div>
 												 				</div>
 												 			</div>
-												 		</div>
+												 		</div> -->
 												 	</div>
 												<?php endforeach; ?>
 											</div>
-											<div class="image-control-add active" title="添加图片"><p>+</p></div>
+											<!-- <div class="image-control-add active" title="添加图片"><p>+</p></div> -->
 										</div>
 									</div>
 								</div>
 							</div>
 							<div class="btn-ctn width-all text-center mg-top">
-								<button type="button" class="btn btn-primary btn-edit" href="#"><p>编辑</p></button>
-								<button type="submit" class="btn btn-primary btn-save none" disabled href="#"><p>保存</p></button>
-								<a class="btn btn-default" href="{:U('Admin/toCar', array('pageName' => 'car'))}"><p>返回</p></a>
+								<!-- <button type="button" class="btn btn-primary btn-edit" href="#"><p>编辑</p></button>
+								<button type="submit" class="btn btn-primary btn-save none" disabled href="#"><p>保存</p></button> -->
+								<a class="btn btn-default" href="{:U('Admin/toPendingVehicle', array('pageName' => 'pending_vehicle'))}"><p>返回</p></a>
 							</div>
 						</form>
 					</div>
@@ -238,28 +246,6 @@
 		<script>
 		(function ($) {
 			$(function() {
-				cityAdd();
-
-				//car----------------------------------------------------------------------
-				//选择品牌
-				$('select.brandSelect').on('change', function() {
-					var brand_id = $(this).val();
-					$.ajax({
-						url: '{:U("Admin/carStyleSelectByIdAjaxReturn")}',
-						type: 'POST',
-						data: {brand_id: brand_id}
-					}).done(function(res) {
-						if (res) {
-							$('select.styleSelect').html('');
-							res.forEach(function($val, $key) {
-								$('select.styleSelect').append(
-									'<option value="'+ $val.id +'">'+ $val.name +'</option>'
-								);
-							});
-						}
-					});
-				});
-
 				//点击图片添加
 				$('.image-control-add').on('click', function() {
 					var length = $('.image-control-ctn >div').length;
@@ -297,44 +283,18 @@
 					$('.imageEditSubmit').submit();
 				});
 
-				$('.btn-ctn .btn-edit').on('click', function() {
-					//打开输入框
-					$('.form-horizontal input.allow,.form-horizontal textarea.allow,.form-horizontal select.allow').removeAttr('readonly');
-					$('.form-horizontal input.allow,.form-horizontal textarea.allow,.form-horizontal select.allow').removeAttr('disabled');
+				// $('.btn-ctn .btn-edit').on('click', function() {
+				// 	//打开输入框
+				// 	$('.form-horizontal input.allow,.form-horizontal textarea.allow,.form-horizontal select.allow').removeAttr('readonly');
+				// 	$('.form-horizontal input.allow,.form-horizontal textarea.allow,.form-horizontal select.allow').removeAttr('disabled');
 
-					//按钮更换
-					$(this).addClass('none');
-					$(this).next('.btn-save').removeClass('none');
-					$(this).next('.btn-save').removeAttr('disabled');
+				// 	//按钮更换
+				// 	$(this).addClass('none');
+				// 	$(this).next('.btn-save').removeClass('none');
+				// 	$(this).next('.btn-save').removeAttr('disabled');
 
-					return false;
-				});
-
-				function cityAdd(){
-					var id = '530000';
-					$.ajax({
-						url: '{:U("Wechat/txCityAreaSelect")}',
-						type: 'POST',
-						data: {id: id}
-					}).done(function(res) {
-						// res = res.result; 
-						res = jQuery.parseJSON(res); 
-						res = res.result[0];	//城市 结果集
-						$('.tx-city').html('');
-
-						var selected = '';
-						res.forEach(function(val,key) {
-							if (val.id == <?php echo $cityId; ?>) {
-								selected = 'selected';
-							}else {
-								selected = '';
-							}
-							$('.tx-city').append(
-								'<option '+ selected +' value="'+ val.id +' '+ val.fullname +'">'+ val.fullname +'</option>'
-							);
-						});
-					});
-				}
+				// 	return false;
+				// });
 			});
 		})(jQuery);
 		</script>

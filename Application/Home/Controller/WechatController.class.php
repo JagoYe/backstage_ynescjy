@@ -9,8 +9,8 @@ class WechatController extends Controller {
         $url = 'https://api.weixin.qq.com/cgi-bin/token';
         $data = array(
             'grant_type' => 'client_credential',
-            'appid' => 'wx4cf1ee506aff078f',
-            'secret' => '4cbae13f860cbaccdd4a2c6c7d7b5244'
+            'appid' => 'wx4796405728efcfcd',
+            'secret' => '310b7b99eb9bc4fe6a2f621704b70ecc'
         );
         $result = $this -> http($url, $data, 'GET', array("Content-type: text/html; charset=utf-8"));
         $token = json_decode($result);
@@ -122,6 +122,163 @@ class WechatController extends Controller {
             $this -> ajaxReturn($param);
         }
     }
+
+    // car sale offer ------------------------------------------------------------------
+    public function carSaleOfferSelectByBestPrice() {
+        header('content-type:text/html;charset=utf-8');
+        $CarSaleOffer = D('Car_sale_offer');
+
+        //数据接收
+        $car_sale_id = $_POST['car_sale_id'];
+
+        $result = $CarSaleOffer -> where(array('car_sale_id' => $car_sale_id)) -> order('id desc') -> select();
+
+        if ($result) {
+            $param = array(
+                'code'=> '200',
+                'status'=> 'success',
+                'data' => $result[0]
+            );
+            $this -> ajaxReturn($param);
+        }else {
+            $param = array(
+                'code'=> '200',
+                'status'=> 'success',
+                'data' => ''
+            );
+            $this -> ajaxReturn($param);
+        }
+    }
+
+    public function carSaleOfferAdd() {
+        header('content-type:text/html;charset=utf-8');
+        $CarSaleOffer = D('Car_sale_offer');
+
+        //时间戳转日期
+        $publish_time = date("Y-m-d H:i:s",time());
+        $_POST['publish_time'] = $publish_time;
+
+        if ($CarSaleOffer -> data($_POST) -> add()) {
+            $param = array(
+                'code'=> '200',
+                'status'=> 'success'
+            );
+            $this -> ajaxReturn($param);
+        }else {
+            $param = array(
+                'code'=> '400',
+                'status'=> 'fail'
+            );
+            $this -> ajaxReturn($param);
+        }
+    }
+    // car sale offer ------------------------------------------------------------------ end
+
+    // car sale 车辆拍卖---------------------------------------------------------------------------------------
+    public function carSalePendingById() {
+        header('content-type:text/html;charset=utf-8');
+        $Car = D('Car');
+        $CarBrand = D('Car_brand');
+        $CarStyle = D('Car_style');
+        $CarSaleOffer = D('Car_sale_offer');
+        $Dao = D('Car_sale');
+        $newArr = array();
+
+        $id = $_POST['id'];
+
+        $result = $Dao -> where(array('car_id' => $id)) -> order('id desc') -> select();
+        foreach ($result as $key1 => $val1) {
+            $singleCar = $Car -> where(array('id' => $val1['car_id'])) -> select();
+            $singleCar = $singleCar[0];
+            
+            //获取car brand
+            $brandId = $singleCar['brand_id'];
+            $brandArr = $CarBrand -> where(array('id' => $brandId)) -> select();
+            $brandArr = $brandArr[0];
+            $singleCar['brand'] = $brandArr;
+
+            //获取car style
+            $styleId = $singleCar['style_id'];
+            $styleArr = $CarStyle -> where(array('id' => $styleId)) -> select();
+            $styleArr = $styleArr[0];
+            $singleCar['brand']['style'] = $styleArr['name'];
+
+            //car sale信息
+            $singleCar['car_sale'] = $val1;
+
+            //数据接收
+            $car_sale_id = $val1['id'];
+            $carOffer = $CarSaleOffer -> where(array('car_sale_id' => $car_sale_id)) -> order('id desc') -> select();
+            if ($carOffer) {
+                $singleCar['best_price'] = $carOffer[0]['offer_price'];
+            }else {
+                $singleCar['best_price'] = '';
+            }
+
+            array_push($newArr, $singleCar);
+        }
+
+        $param = array(
+            'code'=> '200',
+            'status'=> 'success',
+            'data' => $newArr
+        );
+
+        $this -> ajaxReturn($param);
+    }
+
+    public function carSalePendingByStatus() {
+        header('content-type:text/html;charset=utf-8');
+        $Car = D('Car');
+        $CarBrand = D('Car_brand');
+        $CarStyle = D('Car_style');
+        $CarSaleOffer = D('Car_sale_offer');
+        $Dao = D('Car_sale');
+        $newArr = array();
+
+        $status = $_POST['status'];
+
+        $result = $Dao -> where(array('status' => $status)) -> order('id desc') -> select();
+        foreach ($result as $key1 => $val1) {
+            $singleCar = $Car -> where(array('id' => $val1['car_id'])) -> select();
+            $singleCar = $singleCar[0];
+            
+            //获取car brand
+            $brandId = $singleCar['brand_id'];
+            $brandArr = $CarBrand -> where(array('id' => $brandId)) -> select();
+            $brandArr = $brandArr[0];
+            $singleCar['brand'] = $brandArr;
+
+            //获取car style
+            $styleId = $singleCar['style_id'];
+            $styleArr = $CarStyle -> where(array('id' => $styleId)) -> select();
+            $styleArr = $styleArr[0];
+            $singleCar['brand']['style'] = $styleArr['name'];
+
+            //car sale信息
+            $singleCar['car_sale'] = $val1;
+
+            //数据接收
+            $car_sale_id = $val1['id'];
+            $carOffer = $CarSaleOffer -> where(array('car_sale_id' => $car_sale_id)) -> order('id desc') -> select();
+            if ($carOffer) {
+                $singleCar['best_price'] = $carOffer[0]['offer_price'];
+            }else {
+                $singleCar['best_price'] = '';
+            }
+
+            array_push($newArr, $singleCar);
+        }
+
+        $param = array(
+            'code'=> '200',
+            'status'=> 'success',
+            'data' => $newArr
+        );
+
+        $this -> ajaxReturn($param);
+    }
+    // car sale 车辆拍卖--------------------------------------------------------------------------------------- end
 
     // 新车、二手车--------------------------------------------------------------------------------------------
     //车辆查询 (类别、城市、品牌)
@@ -398,18 +555,24 @@ class WechatController extends Controller {
         $newArr = array();
         foreach ($car_id_arr as $key => $val) {
             $simpleCar = $Car -> where(array('id' => $val)) -> select();
-            $simpleCar = $simpleCar[0];
-            array_unshift($newArr, $simpleCar);
+            if ($simpleCar) {
+                $simpleCar = $simpleCar[0];
+                array_unshift($newArr, $simpleCar);
+            }
         }
 
         foreach($newArr as $key => $val) {
             $brand_name = $CarBrand -> where(array('id' => $val['brand_id'])) -> select();
-            $brand_name = $brand_name[0]['name'];
-            $newArr[$key]['brand_name'] = $brand_name;
+            if ($brand_name) {
+                $brand_name = $brand_name[0]['name'];
+                $newArr[$key]['brand_name'] = $brand_name;
+            }
 
             $style_name = $CarStyle -> where(array('id' => $val['style_id'])) -> select();
-            $style_name = $style_name[0]['name'];
-            $newArr[$key]['style_name'] = $style_name;
+            if ($style_name) {
+                $style_name = $style_name[0]['name'];
+                $newArr[$key]['style_name'] = $style_name;
+            }
         }
 
         $param = array(
@@ -434,13 +597,20 @@ class WechatController extends Controller {
 
         if ($result) {
             $result = $result[0];
-            $car_id_arr = explode(' | ', $result['car_id_arr']);
-            array_push($car_id_arr, $car_id);
+            if ($result['car_id_arr'] ==  '') {
+                $car_id_arr = array();
+                array_push($car_id_arr, $car_id);
+            }else {
+                $car_id_arr = explode(' | ', $result['car_id_arr']);
+                array_push($car_id_arr, $car_id);
+            }
         }else {
             $Collection -> data(array('user_phone' => $user_phone, 'car_id_arr' => $car_id)) -> add();
             $result = $Collection -> where(array('user_phone' => $user_phone)) -> select();
             $result = $result[0];
-            $car_id_arr = explode(' | ', $result['car_id_arr']);
+
+            $car_id_arr = array();
+            array_push($car_id_arr, $car_id);
         }
 
         $car_id_arr = implode(' | ', $car_id_arr);
@@ -508,10 +678,76 @@ class WechatController extends Controller {
         $result = $result[0];
 
         $car_id_arr = $result['car_id_arr'];
-        $car_id_arr = explode(' | ', $car_id_arr);
 
+        $car_id_arr = explode(' | ', $car_id_arr);
         
 
+        $newArr = array();
+        foreach ($car_id_arr as $key => $val) {
+            $simpleCar = $Car -> where(array('id' => $val)) -> select();
+            if ($simpleCar) {
+                $simpleCar = $simpleCar[0];
+                array_unshift($newArr, $simpleCar);
+            }
+        }
+
+        foreach($newArr as $key => $val) {
+            $brand_name = $CarBrand -> where(array('id' => $val['brand_id'])) -> select();
+            if ($brand_name) {
+                $brand_name = $brand_name[0]['name'];
+                $newArr[$key]['brand_name'] = $brand_name;
+            }
+
+            $style_name = $CarStyle -> where(array('id' => $val['style_id'])) -> select();
+            if ($style_name) {
+                $style_name = $style_name[0]['name'];
+                $newArr[$key]['style_name'] = $style_name;
+            }
+        }
+
+        $param = array(
+            'code'=> '200',
+            'status'=> 'success',
+            'car_id_arr' => $car_id_arr,
+            'data' => $newArr
+        );
+        $this -> ajaxReturn($param);
+    }
+
+    // 收藏------------------------------------------ end
+
+
+    // 热门------------------------------------------
+    public function carHotSelectByCategory() {
+        header('content-type:text/html;charset=utf-8');
+        $Car = D('Car');
+        $CarBrand = D('Car_brand');
+        $CarStyle = D('Car_style');
+        $CarHot = D('Car_hot');
+
+        $category = $_POST['category'];
+
+        // hot
+        $car_hot_arr = $CarHot -> where(array('category' => $category)) -> select();
+        $car_hot_id_arr = explode(' | ', $car_hot_arr[0]['car_id_arr']);
+
+        // car
+        $car_arr = $Car -> where(array('category' => $category)) -> select();
+        $car_id_arr = array();
+
+        foreach ($car_arr as $key => $val) {
+            array_push($car_id_arr, $val['id']);
+        }
+
+        foreach ($car_id_arr as $key => $val) {
+            foreach ($car_hot_id_arr as $key1 => $val1) {
+                if ($val1 == $val) {
+                    unset($car_id_arr[$key]);
+                }
+            }
+        }
+
+        //汽车详情
         $newArr = array();
         foreach ($car_id_arr as $key => $val) {
             $simpleCar = $Car -> where(array('id' => $val)) -> select();
@@ -529,269 +765,55 @@ class WechatController extends Controller {
             $newArr[$key]['style_name'] = $style_name;
         }
 
-        $param = array(
-            'code'=> '200',
-            'status'=> 'success',
-            'car_id_arr' => $car_id_arr,
-            'data' => $newArr
-        );
-        $this -> ajaxReturn($param);
-    }
-
-    // 收藏------------------------------------------ end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    //酒店查询 所有酒店查询
-    public function hotelSelectAll(){
-        header("Content-Type:text/html; charset=utf-8");
-        $Hotel = D('Hotel');
-        $HotelHomeStyle = D('Hotel_home_style');
-        $HotelMember = D('Hotel_member');
-        $newArr = array();
-
-        $result = $Hotel -> order('id desc') -> select();
-        foreach($result as $key => $val) {
-            array_push($newArr, $val);
-            $homeStyleId = explode('、', $val['home_style_id']);
-            foreach($homeStyleId as $k => $v) {
-                $HomeStyleArr = $HotelHomeStyle -> where(array('id' => $v)) -> order('id desc') -> select(); //homestyle array
-                foreach($HomeStyleArr as $key1 => $val1) {
-                    $memberIdArr = explode('、', $val1['member_id']);
-                    $newArr[$key]['homeStyle'][$k]['name'] = $val1['name'];
-                    $newArr[$key]['homeStyle'][$k]['price'] = $val1['price'];
-                    $newArr[$key]['homeStyle'][$k]['spec'] = $val1['spec'];
-                    $newArr[$key]['homeStyle'][$k]['image'] = $val1['image'];
-                    foreach($memberIdArr as $key2 => $val2) {
-                        $memberArr = $HotelMember -> where(array('id' => $val2)) -> select(); //hotel member
-                        foreach($memberArr as $key3 => $val3){
-                            $newArr[$key]['homeStyle'][$k]['member'][$key2]['name'] = $val3['name'];
-                            $newArr[$key]['homeStyle'][$k]['member'][$key2]['price'] = $val3['price'];
-                            $newArr[$key]['homeStyle'][$k]['member'][$key2]['spec'] = $val3['spec'];
-                        }
-                    }
-                }
+        // hot 详情
+        $newHotArr = array();
+        foreach ($car_hot_id_arr as $key => $val) {
+            $simpleCar = $Car -> where(array('id' => $val)) -> select();
+            if ($simpleCar) {
+                $simpleCar = $simpleCar[0];
+                array_unshift($newHotArr, $simpleCar);
             }
         }
 
-        $param = array(
-            'code'=> '200',
-            'status'=> 'success',
-            'data' => $newArr
-        );
+        foreach($newHotArr as $key => $val) {
+            $brand_name = $CarBrand -> where(array('id' => $val['brand_id'])) -> select();
+            if ($brand_name) {
+                $brand_name = $brand_name[0]['name'];
+                $newHotArr[$key]['brand_name'] = $brand_name;
+            }
 
-        $this -> ajaxReturn($param);
-    }
-
-    //酒店查询 根据区域查询酒店
-    public function hotelSelectByArea(){
-        header("Content-Type:text/html; charset=utf-8");
-        $area = $_POST['area'];
-
-        $Hotel = D('Hotel');
-        $HotelHomeStyle = D('Hotel_home_style');
-        $HotelMember = D('Hotel_member');
-        $newArr = array();
-
-        $result = $Hotel -> where(array('area' => $area)) -> order('id desc') -> select();
-        foreach($result as $key => $val) {
-            array_push($newArr, $val);
-            $homeStyleId = explode('、', $val['home_style_id']);
-            foreach($homeStyleId as $k => $v) {
-                $HomeStyleArr = $HotelHomeStyle -> where(array('id' => $v)) -> order('id desc') -> select(); //homestyle array
-                foreach($HomeStyleArr as $key1 => $val1) {
-                    $memberIdArr = explode('、', $val1['member_id']);
-                    $newArr[$key]['homeStyle'][$k]['name'] = $val1['name'];
-                    $newArr[$key]['homeStyle'][$k]['price'] = $val1['price'];
-                    $newArr[$key]['homeStyle'][$k]['spec'] = $val1['spec'];
-                    foreach($memberIdArr as $key2 => $val2) {
-                        $memberArr = $HotelMember -> where(array('id' => $val2)) -> select(); //hotel member
-                        foreach($memberArr as $key3 => $val3){
-                            $newArr[$key]['homeStyle'][$k]['member'][$key2]['name'] = $val3['name'];
-                            $newArr[$key]['homeStyle'][$k]['member'][$key2]['price'] = $val3['price'];
-                            $newArr[$key]['homeStyle'][$k]['member'][$key2]['spec'] = $val3['spec'];
-                        }
-                    }
-                }
+            $style_name = $CarStyle -> where(array('id' => $val['style_id'])) -> select();
+            if ($style_name) {
+                $style_name = $style_name[0]['name'];
+                $newHotArr[$key]['style_name'] = $style_name;   
             }
         }
 
-        $param = array(
-            'code'=> '200',
-            'status'=> 'success',
-            'data' => $newArr
+        //返回结果
+
+        $data = array(
+            'allow_add' => $newArr,
+            'already' => $newHotArr
         );
 
-        $this -> ajaxReturn($param);
+        $this -> ajaxReturn($data);
     }
+    // 热门------------------------------------------ end
 
-    //订单添加
-    public function orderAdd() {
-    	header('content-type:text/html;charset=utf-8');
-        $Dao = D('Order');
-        $User = D('User');
-        $condition = array(
-        	'order_number' => $_POST['order_number'],      //订单号
-            'hotel_id' => $_POST['hotel_id'],              //酒店id
-        	'hotel_name' => $_POST['hotel_name'],          //酒店名
-            'hotel_phone' => $_POST['hotel_phone'],        //酒店电话
-            'theme' => $_POST['theme'],                    //主题
-            'address' => $_POST['address'],                //地址
-        	'check_in' => $_POST['check_in'],              //入住日期
-        	'check_out' => $_POST['check_out'],            //退房日期
-            'used_score' => $_POST['used_score'],          //抵扣积分
-            'now_score' => $_POST['now_score'],            //现有积分
-            'cost_price' => $_POST['cost_price'],          //原价
-        	'price' => $_POST['price'],                    //总价
-        	'status' => $_POST['status'],                  //状态
-            'detail' => $_POST['detail'],                  //详情
-            'user_name' => $_POST['user_name'],            //用户名
-            'user_phone' => $_POST['user_phone'],          //用户电话
-            'view' => 0                                    //是否浏览
-        );
-        if ($Dao -> data($condition) -> add()) {
-            //积分扣除
-            $User -> where(array('phone' => $_POST['user_phone'])) -> save(array('score' => $_POST['now_score']));
-        	$param = array(
-        		'code'=> '200',
-        		'status'=> 'success'
-        	);
-        	$this -> ajaxReturn($param);
-        }else {
-        	$param = array(
-        		'code'=> '400',
-        		'status'=> 'fail'
-        	);
-        	$this -> ajaxReturn($param);
-        }
-    }
-
-    //全部订单查询
-    public function orderSelect() {
-    	header('content-type:text/html;charset=utf-8');
-        $Dao = D('Order');
-        $userPhone = $_POST['phone'];
-        $result = $Dao -> where(array('user_phone' => $userPhone)) -> select();
-        if ($result) {
-    		$param = array(
-	    		'code'=> '200',
-	    		'status'=> 'success',
-	    		'data'=> $result
-	    	);
-	    	$this -> ajaxReturn($param);
-    	}else {
-    		$param = array(
-	    		'code'=> '400',
-	    		'status'=> 'fail'
-	    	);
-	    	$this -> ajaxReturn($param);
-    	}
-    }
-
-    //订单状态更改
-    public function orderStatusUpdate() {
-        header("Content-Type:text/html; charset=utf-8");
-        $Dao = D('Order');
-
-        $refundReason = '';
-        $id = $_POST['id'];
-        $status = $_POST['status'];
-        if ($_POST['refund_reason']) {
-            $refundReason = $_POST['refund_reason'];   
-        }
-        $condition = array(
-            'status' => $status,
-            'refund_reason' => $refundReason
-        );
-
-        if ($Dao -> where(array('id' => $id)) -> save($condition)) {
-            $params = array(
-                'code' => '200',
-                'status' => 'success'
-            );
-            $this -> ajaxReturn($params);
-        }else {
-            $params = array(
-                'code' => '400',
-                'status' => 'fail'
-            );
-            $this -> ajaxReturn($params);
-        }
-    }
-
-    //根据状态查询订单
-    public function orderSelectByStatus() {
+    // 待发布车辆 PendingVehicle -------------------------------------------------------------
+    public function pendingVehicleAdd() {
         header('content-type:text/html;charset=utf-8');
-        $Dao = D('Order');
-        $userPhone = $_POST['phone'];
-        $condition = array();
+        $PendingVehicle = D('Pending_vehicle');
 
-        if ($_POST['status'] == '-1') {
-            
-        }else {
-            $condition = array(
-                'status' => $_POST['status']
-            );
-        }
+        $publish_time = date('Y-m-d');
+        $_POST['publish_time'] = $publish_time;
+        $_POST['visit_qty'] = 0;
+        $_POST['status'] = 0;
 
-        $condition['user_phone'] = $userPhone;
-
-        $result = $Dao -> where($condition) -> order('id desc') -> select();
-        if ($result) {
+        if ($PendingVehicle -> data($_POST) -> add()) {
             $param = array(
                 'code'=> '200',
-                'status'=> 'success',
-                'data'=> $result
+                'status'=> 'success'
             );
             $this -> ajaxReturn($param);
         }else {
@@ -800,24 +822,23 @@ class WechatController extends Controller {
                 'status'=> 'fail'
             );
             $this -> ajaxReturn($param);
-        }   
+        }
     }
 
-    //单一订单查询(id)
-    public function orderSelectById() {
+    public function pendingVehicleSelectByPhone() {
         header('content-type:text/html;charset=utf-8');
-        $Dao = D('Order');
+        $PendingVehicle = D('Pending_vehicle');
 
-        $condition = array(
-            'id' => $_POST['id']
-        );
+        //数据接收
+        $user_phone = $_POST['user_phone'];
 
-        $result = $Dao -> where($condition) -> order('id desc') -> select();
+        //数据查询
+        $result = $PendingVehicle -> where(array('user_phone' => $user_phone)) -> order('id desc') -> select();
         if ($result) {
             $param = array(
                 'code'=> '200',
                 'status'=> 'success',
-                'data'=> $result
+                'data' => $result
             );
             $this -> ajaxReturn($param);
         }else {
@@ -826,9 +847,63 @@ class WechatController extends Controller {
                 'status'=> 'fail'
             );
             $this -> ajaxReturn($param);
-        }      
+        }
     }
+    // 待发布车辆 PendingVehicle ------------------------------------------------------------- end
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   
 
 
 
@@ -898,8 +973,8 @@ class WechatController extends Controller {
     public function userLogin() {
         header('content-type:text/html;charset=utf-8');
         $url = 'https://api.weixin.qq.com/sns/jscode2session';
-        $appId = 'wx4cf1ee506aff078f';
-        $secret = '4cbae13f860cbaccdd4a2c6c7d7b5244';
+        $appId = 'wx4796405728efcfcd';
+        $secret = '310b7b99eb9bc4fe6a2f621704b70ecc';
         $jsCode = $_GET['code'];
         $grantType = 'authorization_code';
 

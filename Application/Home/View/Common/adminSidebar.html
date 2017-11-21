@@ -24,11 +24,7 @@
 
 		<?php 
 			$Dao = A('Admin');
-			// $result1 = $Dao -> orderSelectByStatus('0');
-			// $result2 = $Dao -> orderSelectByStatus('2');
-			// $result2 = $Dao -> messageEnterpriseNew();
-			// $result = count($result1) + count($result2);
-			// $result = count($result1) + count($result2);
+			$PendingCount = $Dao -> pendingVehicleNew();
 		 ?>
 
 		 <li class="<?php if($pageName == 'car'){ echo 'active'; } ?>">
@@ -37,70 +33,20 @@
 				<div class="arrow-right-ctn"><div class="cus-table"><div class="cus-table-cell"><div class="arrow"><i class="icon-angle-right white"></i></div></div></div></div>
 			</div>
 		</li>
-
-		 <li class="<?php if($pageName == 'hotel'){ echo 'active'; } ?>">
-			<div class="relative first-level">
-				<p><a href="{:U('Admin/toHotel', array('pageName' => 'hotel'))}"><i class="icon-desktop"></i> 酒店管理</a></p>
-				<div class="arrow-right-ctn"><div class="cus-table"><div class="cus-table-cell"><div class="arrow"><i class="icon-angle-right white"></i></div></div></div></div>
-			</div>
-		</li>
-
-		 <li class="<?php if($pageName == 'message'){ echo 'active'; } ?>">
-			<div class="relative first-level">
-				<p><a href="{:U('Admin/toMessage', array('pageName' => 'message'))}"><i class="icon-tags"></i> 订单信息 <?php if($result != 0): ?><span class="badge message-new-all bg-yellow"><?php echo $result; ?></span><?php endif; ?></a></p>
-				<div class="arrow-right-ctn"><div class="cus-table"><div class="cus-table-cell"><div class="arrow"><i class="icon-angle-right white"></i></div></div></div></div>
-			</div>
-		</li>
 		
-		<li class="<?php if($pageName == 'usedcar'){ echo 'active'; } ?>">
+		<li class="<?php if($pageName == 'car_sale'){ echo 'active'; } ?>">
 			<div class="relative first-level">
-				<p><a href="{:U('Usedcar/tousedCar', array('pageName' => 'usedcar'))}"><i class="icon-tags"></i> 代售二手车<?php if($result != 0): ?><span class="badge message-new-all bg-yellow"><?php echo $result; ?></span><?php endif; ?></a></p>
-				<div class="arrow-right-ctn"><div class="cus-table"><div class="cus-table-cell"><div class="arrow"><i class="icon-angle-right white"></i></div></div></div></div>
-			</div>
-		</li>
-		<!-- <li class="<?php if($pageName == 'message'){ echo 'active'; } ?>">
-			<div class="relative first-level">
-				<p><a href="{:U('Admin/toMessage', array('pageName' => 'message'))}"><i class="icon-envelope"></i> 用户留言 <?php if($result != 0): ?><span class="badge message-new-all bg-yellow"><?php echo $result; ?></span><?php endif; ?></a></p>
-				<div class="arrow-right-ctn"><div class="cus-table"><div class="cus-table-cell"><div class="arrow"><i class="icon-angle-right white"></i></div></div></div></div>
-			</div>
-		</li> -->
-		<!-- <li class="<?php if($pageName == 'information'){ echo 'active'; } ?>">
-			<div class="relative first-level">
-				<p><a href="{:U('Admin/toInformation', array('pageName' => 'information'))}"><i class="icon-list-alt"></i> 资讯管理</a></p>
+				<p><a href="{:U('Admin/toCarSale', array('pageName' => 'car_sale'))}"><i class="icon-legal"></i> 车辆拍卖<?php if($result != 0): ?><span class="badge message-new-all bg-yellow"><?php echo $result; ?></span><?php endif; ?></a></p>
 				<div class="arrow-right-ctn"><div class="cus-table"><div class="cus-table-cell"><div class="arrow"><i class="icon-angle-right white"></i></div></div></div></div>
 			</div>
 		</li>
 
-		<li class="<?php if($pageName == 'download'){ echo 'active'; } ?>">
+		<li class="<?php if($pageName == 'pending_vehicle'){ echo 'active'; } ?>">
 			<div class="relative first-level">
-				<p><a href="{:U('Admin/toDownload', array('pageName' => 'download'))}"><i class="icon-download-alt"></i> 资料下载</a></p>
+				<p><a href="{:U('Admin/toPendingVehicle', array('pageName' => 'pending_vehicle'))}"><i class="icon-book"></i> 待发车辆 <?php if($PendingCount != 0): ?><span class="badge pengding-vehicle-new-all bg-yellow"><?php echo $PendingCount; ?></span><?php endif; ?></a></p>
 				<div class="arrow-right-ctn"><div class="cus-table"><div class="cus-table-cell"><div class="arrow"><i class="icon-angle-right white"></i></div></div></div></div>
 			</div>
 		</li>
-
-		<li class="<?php if($pageName == 'frontend'){ echo 'active'; } ?>">
-			<div class="relative first-level">
-				<p><a class="first-level-menu" href="{:U('Admin/toFrontend', array('pageName' => 'frontend'))}"><i class="icon-desktop"></i> 前台管理</a></p>
-				<div class="arrow-right-ctn"><div class="cus-table"><div class="cus-table-cell"><div class="arrow"><i class="icon-angle-right white"></i></div></div></div></div>
-			</div>
-			<div class="second-level-menu frontend">
-				<div class="relative">
-					<p><a href="{:U('Admin/toFrontend', array('pageName' => 'frontend', 'isChild' => 'true', 'childName' => 'homepage'))}">首页</a></p>
-				</div>
-				<div class="relative">
-					<p><a href="{:U('Admin/toFrontend', array('pageName' => 'frontend', 'isChild' => 'true', 'childName' => 'curriculum'))}">课程</a></p>
-				</div>
-				<div class="relative">
-					<p><a href="{:U('Admin/toFrontend', array('pageName' => 'frontend', 'isChild' => 'true', 'childName' => 'about'))}">关于美高</a></p>
-				</div>
-				<div class="relative">
-					<p><a href="{:U('Admin/toFrontend', array('pageName' => 'frontend', 'isChild' => 'true', 'childName' => 'partner'))}">合作伙伴</a></p>
-				</div>
-				<div class="relative">
-					<p><a href="{:U('Admin/toFrontend', array('pageName' => 'frontend', 'isChild' => 'true', 'childName' => 'center'))}">个人中心</a></p>
-				</div>
-			</div>
-		</li> -->
 
 		<?php if(session('level') == 10): ?>
 			<li class="<?php if($pageName == 'accountManage'){ echo 'active'; } ?>">
@@ -117,6 +63,20 @@
 <script>
 (function ($) {
 	$(function() {
+		// car sale update setInterval
+		$.ajax({
+			url: '{:U("Admin/carSaleStatusUpdateAjaxReturn")}'
+		}).done(function(res) {
+			console.log(res);
+		});
+		setInterval(function() {
+			$.ajax({
+				url: '{:U("Admin/carSaleStatusUpdateAjaxReturn")}'
+			}).done(function(res) {
+				console.log(res);
+			});
+		}, 10000);
+
 		$('.first-level-menu').on('click', function() {
 			var isAcitve = $(this).hasClass('active');
 			if (isAcitve) {

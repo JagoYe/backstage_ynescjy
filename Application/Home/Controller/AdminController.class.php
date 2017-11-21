@@ -40,17 +40,23 @@ class AdminController extends Controller {
     		$this -> display("Admin/Login/index");
     	}
     }
-    public function toMessage() {
+    public function toPendingVehicle() {
     	if ($this -> loginConfirm()) {
-    		$pageName = $_GET['pageName'];
-	    	$params = array(
-	    		'pageName' => $pageName
-	    	);
-	    	$this -> assign($params);
-    		$this -> display("Admin/Message/index");
-    	}else {
-    		$this -> display("Admin/Login/index");
-    	}
+            $isChild = $_GET['isChild'];
+            if ($isChild) {
+                $page = $_GET['childName'];
+            }else {
+                $page = 'index';
+            }
+            $pageName = $_GET['pageName'];
+            $params = array(
+                'pageName' => $pageName
+            );
+            $this -> assign($params);
+            $this -> display("Admin/PendingVehicle/".$page);
+        }else {
+            $this -> display("Admin/Login/index");
+        }
     }
     public function toDownload() {
         if ($this -> loginConfirm()) {
@@ -124,10 +130,593 @@ class AdminController extends Controller {
             $this -> display("Admin/Login/index");
         }
     }
+    public function toCarSale() {
+        if ($this -> loginConfirm()) {
+            $isChild = $_GET['isChild'];
+            if ($isChild) {
+                $page = $_GET['childName'];
+            }else {
+                $page = 'index';
+            }
+            $pageName = $_GET['pageName'];
+            $params = array(
+                'pageName' => $pageName
+            );
+            $this -> assign($params);
+            $this -> display("Admin/CarSale/".$page);
+        }else {
+            $this -> display("Admin/Login/index");
+        }
+    }
 
     //支付接口回调接收
     public function wecahtPayBack() {
+        
+    }
 
+
+
+    // car sale ------------------------------------------------------------------------
+    public function carSaleStatusUpdateAjaxReturn() {
+        header('content-type:text/html;charset=utf-8');
+        $CarSale = D('Car_sale');
+
+        // 当前时间戳
+        // date_default_timezone_set('PRC');
+        $curTimeStamp = time();
+
+        $result = $CarSale -> select();
+        foreach ($result as $key => $val) {
+            if ($curTimeStamp >= (int)$val['starting_timestamp']) {
+                if ($curTimeStamp <= (int)$val['ending_timestamp']) {
+                    $CarSale -> where(array('id' => $val['id'])) -> save(array('status' => 1));
+                }else {
+                    $CarSale -> where(array('id' => $val['id'])) -> save(array('status' => 2));
+                }
+            }
+        }
+
+        $this -> ajaxReturn($curTimeStamp);
+    }
+
+    public function carSaleSelectById($id) {
+        header('content-type:text/html;charset=utf-8');
+        $CarSale = D('Car_sale');
+        $CarSaleOffer = D('Car_sale_offer');
+
+        $Car = D('Car');
+        $CarBrand = D('Car_brand');
+        $CarStyle = D('Car_style');
+        $newArr = array();
+
+        $result = $CarSale -> where(array('car_id' => $id)) -> order('id desc') -> select();
+        foreach ($result as $key1 => $val1) {
+            $singleCar = $Car -> where(array('id' => $val1['car_id'])) -> select();
+            $singleCar = $singleCar[0];
+            
+            //获取car brand
+            $brandId = $singleCar['brand_id'];
+            $brandArr = $CarBrand -> where(array('id' => $brandId)) -> select();
+            $brandArr = $brandArr[0];
+            $singleCar['brand'] = $brandArr;
+
+            //获取car style
+            $styleId = $singleCar['style_id'];
+            $styleArr = $CarStyle -> where(array('id' => $styleId)) -> select();
+            $styleArr = $styleArr[0];
+            $singleCar['brand']['style'] = $styleArr['name'];
+
+            //car sale信息
+            $singleCar['car_sale'] = $val1;
+
+            // car sale offer 拍车人信息
+            $singleCar['car_sale_offer'] = $CarSaleOffer -> where(array('car_sale_id' => $val1['id'])) -> order('id desc') -> select();
+
+            array_push($newArr, $singleCar);
+        }
+
+        return $newArr;
+    }
+
+    public function carSaleDelete() {
+        header('content-type:text/html;charset=utf-8');
+        $CarSale = D('Car_sale');
+
+        //数据接收
+        $id = $_GET['deleteId'];
+
+        //删除
+        if ($CarSale -> where(array('car_id' => $id)) -> delete()) {
+            $params = array(
+                'status' => 'success',
+                'isChild' => true,
+                'childName' => 'car_sale_pending',
+                'info' => '停止拍卖车辆成功!',
+                'pageName' => 'car_sale'
+            );
+            $this -> redirect('Admin/toCarSale', $params);
+        }else {
+            $params = array(
+                'status' => 'fail',
+                'isChild' => true,
+                'childName' => 'car_sale_pending',
+                'info' => '停止拍卖车辆失败!',
+                'pageName' => 'car_sale'
+            );
+            $this -> redirect('Admin/toCarSale', $params);
+        }
+    }
+
+    public function carSalePendingByStatus($status) {
+        header('content-type:text/html;charset=utf-8');
+        $Car = D('Car');
+        $CarBrand = D('Car_brand');
+        $CarStyle = D('Car_style');
+        $Dao = D('Car_sale');
+        $newArr = array();
+
+        $result = $Dao -> where(array('status' => $status)) -> order('id desc') -> select();
+        foreach ($result as $key1 => $val1) {
+            $singleCar = $Car -> where(array('id' => $val1['car_id'])) -> select();
+            $singleCar = $singleCar[0];
+            
+            //获取car brand
+            $brandId = $singleCar['brand_id'];
+            $brandArr = $CarBrand -> where(array('id' => $brandId)) -> select();
+            $brandArr = $brandArr[0];
+            $singleCar['brand'] = $brandArr;
+
+            //获取car style
+            $styleId = $singleCar['style_id'];
+            $styleArr = $CarStyle -> where(array('id' => $styleId)) -> select();
+            $styleArr = $styleArr[0];
+            $singleCar['brand']['style'] = $styleArr['name'];
+
+            //car sale信息
+            $singleCar['car_sale'] = $val1;
+
+            array_push($newArr, $singleCar);
+        }
+
+        return $newArr;
+    }
+
+    public function carSaleFinished() {
+        header('content-type:text/html;charset=utf-8');
+        $Car = D('Car');
+        $CarBrand = D('Car_brand');
+        $CarStyle = D('Car_style');
+        $Dao = D('Car_sale');
+        $newArr = array();        
+
+        $result2 = $Dao -> where(array('status' => '2')) -> order('id desc') -> select();
+        foreach ($result2 as $key1 => $val1) {
+            $singleCar = $Car -> where(array('id' => $val1['car_id'])) -> select();
+            $singleCar = $singleCar[0];
+            
+            //获取car brand
+            $brandId = $singleCar['brand_id'];
+            $brandArr = $CarBrand -> where(array('id' => $brandId)) -> select();
+            $brandArr = $brandArr[0];
+            $singleCar['brand'] = $brandArr;
+
+            //获取car style
+            $styleId = $singleCar['style_id'];
+            $styleArr = $CarStyle -> where(array('id' => $styleId)) -> select();
+            $styleArr = $styleArr[0];
+            $singleCar['brand']['style'] = $styleArr['name'];
+
+            //car sale信息
+            $singleCar['car_sale'] = $val1;
+
+            array_push($newArr, $singleCar);
+        }
+
+        return $newArr;
+    }
+
+    public function carSalePending() {
+        header('content-type:text/html;charset=utf-8');
+        $Car = D('Car');
+        $CarBrand = D('Car_brand');
+        $CarStyle = D('Car_style');
+        $Dao = D('Car_sale');
+        $newArr = array();        
+
+        $result2 = $Dao -> where(array('status' => '1')) -> order('id desc') -> select();
+        foreach ($result2 as $key1 => $val1) {
+            $singleCar = $Car -> where(array('id' => $val1['car_id'])) -> select();
+            $singleCar = $singleCar[0];
+            
+            //获取car brand
+            $brandId = $singleCar['brand_id'];
+            $brandArr = $CarBrand -> where(array('id' => $brandId)) -> select();
+            $brandArr = $brandArr[0];
+            $singleCar['brand'] = $brandArr;
+
+            //获取car style
+            $styleId = $singleCar['style_id'];
+            $styleArr = $CarStyle -> where(array('id' => $styleId)) -> select();
+            $styleArr = $styleArr[0];
+            $singleCar['brand']['style'] = $styleArr['name'];
+
+            //car sale信息
+            $singleCar['car_sale'] = $val1;
+
+            array_push($newArr, $singleCar);
+        }
+
+        $result1 = $Dao -> where(array('status' => '0')) -> order('id desc') -> select();
+        foreach ($result1 as $key1 => $val1) {
+            $singleCar = $Car -> where(array('id' => $val1['car_id'])) -> select();
+            $singleCar = $singleCar[0];
+            
+            //获取car brand
+            $brandId = $singleCar['brand_id'];
+            $brandArr = $CarBrand -> where(array('id' => $brandId)) -> select();
+            $brandArr = $brandArr[0];
+            $singleCar['brand'] = $brandArr;
+
+            //获取car style
+            $styleId = $singleCar['style_id'];
+            $styleArr = $CarStyle -> where(array('id' => $styleId)) -> select();
+            $styleArr = $styleArr[0];
+            $singleCar['brand']['style'] = $styleArr['name'];
+
+            //car sale信息
+            $singleCar['car_sale'] = $val1;
+
+            array_push($newArr, $singleCar);
+        }
+
+        return $newArr;
+    }
+
+    public function carSaleAdd() {
+        header('content-type:text/html;charset=utf-8');
+        $Dao = D('car_sale');
+
+        //日期转换时间戳
+        $startingTimeStamp = strtotime($_POST['starting_time']);
+        $endingTimeStamp = strtotime($_POST['ending_time']);
+        $curTime = time();
+
+        // var_dump($curTime);
+        // var_dump($startingTimeStamp);
+        // die();
+
+        if ($curTime < $startingTimeStamp) {
+            //提交参数
+            $data = array(
+                'car_id' => $_POST['car_id'],
+                'starting_price' => $_POST['starting_price'],
+                'evaluate_price' => $_POST['evaluate_price'],
+                'starting_time' => $_POST['starting_time'],
+                'ending_time' => $_POST['ending_time'],
+                'amount_of_increase' => $_POST['amount_of_increase'],
+                'starting_timestamp' => $startingTimeStamp,
+                'ending_timestamp' => $endingTimeStamp,
+                'status' => '0'
+            );
+            
+            if ($Dao -> data($data) -> add()) {
+                $params = array(
+                    'status' => 'success',
+                    'info' => '拍卖车辆添加成功!',
+                    'pageName' => 'car_sale'
+                );
+                $this -> redirect('Admin/toCarSale', $params);
+            }else {
+                $params = array(
+                    'status' => 'fail',
+                    'info' => '拍卖车辆添加失败!',
+                    'pageName' => 'car_sale'
+                );
+                $this -> redirect('Admin/toCarSale', $params);
+            }
+        }else {
+            $params = array(
+                'status' => 'fail',
+                'info' => '拍卖时间不能小时当前时间!',
+                'pageName' => 'car_sale'
+            );
+            $this -> redirect('Admin/toCarSale', $params);
+        }
+    }
+
+    public function carSaleByStatusAjaxReturn() {
+        header('content-type:text/html;charset=utf-8');
+        $Dao = D('Car_sale');
+        $condition = array();
+
+        if ($_POST['status'] == '-1') {
+            
+        }else {
+            $condition = array(
+                'status' => $_POST['status']
+            );
+        }
+
+        $result = $Dao -> where($condition) -> order('id desc') -> select();
+        if ($result) {
+            $param = array(
+                'code'=> '200',
+                'status'=> 'success',
+                'data'=> $result
+            );
+            $this -> ajaxReturn($param);
+        }else {
+            $param = array(
+                'code'=> '400',
+                'status'=> 'fail'
+            );
+            $this -> ajaxReturn($param);
+        }
+    }
+    // car sale ------------------------------------------------------------------------ end
+
+    // car hot -------------------------------------------------------------------------
+    public function carHotSelectByCategory($category) {
+        header('content-type:text/html;charset=utf-8');
+        $Car = D('Car');
+        $CarBrand = D('Car_brand');
+        $CarStyle = D('Car_style');
+        $CarHot = D('Car_hot');
+        $newArr = array();
+
+        $result = $CarHot -> where(array('category' => $category)) -> select();
+        $car_id_arr = explode(' | ', $result[0]['car_id_arr']);
+
+        foreach($car_id_arr as $key => $val) {
+            $brand_name = $CarBrand -> where(array('id' => $val['brand_id'])) -> select();
+            if ($brand_name) {
+                $brand_name = $brand_name[0]['name'];
+                $newArr[$key]['brand_name'] = $brand_name;
+            }
+
+            $style_name = $CarStyle -> where(array('id' => $val['style_id'])) -> select();
+            if ($style_name) {
+                $style_name = $style_name[0]['name'];
+                $newArr[$key]['style_name'] = $style_name;   
+            }
+        }
+
+        
+        // $this -> ajaxReturn($param);
+        return $newArr;
+    }
+
+    public function carHotAdd() {
+        header('content-type:text/html;charset=utf-8');
+        $CarHot = D('Car_hot');
+
+        $category = $_POST['category'];
+        $car_id = $_POST['car_id'];
+
+        $result = $CarHot -> where(array('category' => $category)) -> select();
+        if ($result[0]['car_id_arr'] == '') {
+            $car_id_arr = $car_id;
+        }else {
+            $car_id_arr = explode(' | ', $result[0]['car_id_arr']);
+
+            array_push($car_id_arr, $car_id);
+            $car_id_arr = implode(' | ', $car_id_arr);
+        }
+
+        if ($CarHot -> where(array('category' => $category)) -> save(array('car_id_arr' => $car_id_arr))) {
+            $params = array(
+                'status' => 'success',
+                'info' => '热门车辆添加成功!',
+                'pageName' => 'car'
+            );
+            $this -> redirect('Admin/toCar', $params);
+        }else {
+            $params = array(
+                'status' => 'fail',
+                'info' => '热门车辆添加失败!',
+                'pageName' => 'car'
+            );
+            $this -> redirect('Admin/toCar', $params);
+        }
+    }
+
+    public function carHotDelete() {
+        header('content-type:text/html;charset=utf-8');
+        $CarHot = D('Car_hot');
+
+        $category = $_POST['category'];
+        $car_id = $_POST['deleteId'];
+
+        $condition = array(
+            'category' => $category
+        );
+
+        $result = $CarHot -> where($condition) -> select();
+        $car_id_arr = explode(' | ', $result[0]['car_id_arr']);
+
+        foreach ($car_id_arr as $key => $val) {
+            if ($val == $car_id) {
+                unset($car_id_arr[$key]);
+            }
+        }
+
+        $car_id_arr = implode(' | ', $car_id_arr);
+
+        if ($CarHot -> where($condition) -> save(array('car_id_arr' => $car_id_arr))) {
+            $params = array(
+                'status' => 'success',
+                'info' => '热门车辆删除成功!',
+                'pageName' => 'car'
+            );
+            $this -> redirect('Admin/toCar', $params);
+        }else {
+            $params = array(
+                'status' => 'fail',
+                'info' => '热门车辆删除失败!',
+                'pageName' => 'car'
+            );
+            $this -> redirect('Admin/toCar', $params);
+        }
+    }
+
+    public function carHotSelectByAllow($category) {
+        header('content-type:text/html;charset=utf-8');
+        $Car = D('Car');
+        $CarBrand = D('Car_brand');
+        $CarStyle = D('Car_style');
+        $CarHot = D('Car_hot');
+
+        // hot
+        $car_hot_arr = $CarHot -> where(array('category' => $category)) -> select();
+        $car_hot_id_arr = explode(' | ', $car_hot_arr[0]['car_id_arr']);
+
+        // car
+        $car_arr = $Car -> where(array('category' => $category)) -> select();
+        $car_id_arr = array();
+
+        foreach ($car_arr as $key => $val) {
+            array_push($car_id_arr, $val['id']);
+        }
+
+        foreach ($car_id_arr as $key => $val) {
+            foreach ($car_hot_id_arr as $key1 => $val1) {
+                if ($val1 == $val) {
+                    unset($car_id_arr[$key]);
+                }
+            }
+        }
+
+        //汽车详情
+        $newArr = array();
+        foreach ($car_id_arr as $key => $val) {
+            $simpleCar = $Car -> where(array('id' => $val)) -> select();
+            $simpleCar = $simpleCar[0];
+            array_unshift($newArr, $simpleCar);
+        }
+
+        foreach($newArr as $key => $val) {
+            $brand_name = $CarBrand -> where(array('id' => $val['brand_id'])) -> select();
+            $brand_name = $brand_name[0]['name'];
+            $newArr[$key]['brand_name'] = $brand_name;
+
+            $style_name = $CarStyle -> where(array('id' => $val['style_id'])) -> select();
+            $style_name = $style_name[0]['name'];
+            $newArr[$key]['style_name'] = $style_name;
+        }
+
+        // hot 详情
+        $newHotArr = array();
+        foreach ($car_hot_id_arr as $key => $val) {
+            $simpleCar = $Car -> where(array('id' => $val)) -> select();
+            if ($simpleCar) {
+                $simpleCar = $simpleCar[0];
+                array_unshift($newHotArr, $simpleCar);
+            }
+        }
+
+        foreach($newHotArr as $key => $val) {
+            $brand_name = $CarBrand -> where(array('id' => $val['brand_id'])) -> select();
+            if ($brand_name) {
+                $brand_name = $brand_name[0]['name'];
+                $newHotArr[$key]['brand_name'] = $brand_name;
+            }
+
+            $style_name = $CarStyle -> where(array('id' => $val['style_id'])) -> select();
+            if ($style_name) {
+                $style_name = $style_name[0]['name'];
+                $newHotArr[$key]['style_name'] = $style_name;   
+            }
+        }
+
+        //返回结果
+
+        $data = array(
+            'allow_add' => $newArr,
+            'already' => $newHotArr
+        );
+
+        return $data;
+    }
+
+    public function carHotSelectByAllowAjaxReturn() {
+        header('content-type:text/html;charset=utf-8');
+        $Car = D('Car');
+        $CarBrand = D('Car_brand');
+        $CarStyle = D('Car_style');
+        $CarHot = D('Car_hot');
+
+        $category = $_POST['category'];
+
+        // hot
+        $car_hot_arr = $CarHot -> where(array('category' => $category)) -> select();
+        $car_hot_id_arr = explode(' | ', $car_hot_arr[0]['car_id_arr']);
+
+        // car
+        $car_arr = $Car -> where(array('category' => $category)) -> select();
+        $car_id_arr = array();
+
+        foreach ($car_arr as $key => $val) {
+            array_push($car_id_arr, $val['id']);
+        }
+
+        foreach ($car_id_arr as $key => $val) {
+            foreach ($car_hot_id_arr as $key1 => $val1) {
+                if ($val1 == $val) {
+                    unset($car_id_arr[$key]);
+                }
+            }
+        }
+
+        //汽车详情
+        $newArr = array();
+        foreach ($car_id_arr as $key => $val) {
+            $simpleCar = $Car -> where(array('id' => $val)) -> select();
+            $simpleCar = $simpleCar[0];
+            array_unshift($newArr, $simpleCar);
+        }
+
+        foreach($newArr as $key => $val) {
+            $brand_name = $CarBrand -> where(array('id' => $val['brand_id'])) -> select();
+            $brand_name = $brand_name[0]['name'];
+            $newArr[$key]['brand_name'] = $brand_name;
+
+            $style_name = $CarStyle -> where(array('id' => $val['style_id'])) -> select();
+            $style_name = $style_name[0]['name'];
+            $newArr[$key]['style_name'] = $style_name;
+        }
+
+        // hot 详情
+        $newHotArr = array();
+        foreach ($car_hot_id_arr as $key => $val) {
+            $simpleCar = $Car -> where(array('id' => $val)) -> select();
+            if ($simpleCar) {
+                $simpleCar = $simpleCar[0];
+                array_unshift($newHotArr, $simpleCar);
+            }
+        }
+
+        foreach($newHotArr as $key => $val) {
+            $brand_name = $CarBrand -> where(array('id' => $val['brand_id'])) -> select();
+            if ($brand_name) {
+                $brand_name = $brand_name[0]['name'];
+                $newHotArr[$key]['brand_name'] = $brand_name;
+            }
+
+            $style_name = $CarStyle -> where(array('id' => $val['style_id'])) -> select();
+            if ($style_name) {
+                $style_name = $style_name[0]['name'];
+                $newHotArr[$key]['style_name'] = $style_name;   
+            }
+        }
+
+        //返回结果
+
+        $data = array(
+            'allow_add' => $newArr,
+            'already' => $newHotArr
+        );
+
+        $this -> ajaxReturn($data);
     }
 
     // car
@@ -766,27 +1355,140 @@ class AdminController extends Controller {
         foreach($styleIdArr as $key => $val) {
             if ($val == $id) {
                 unset($styleIdArr[$key]);
-                var_dump($styleIdArr);
+                // var_dump($styleIdArr);
             }
         }
-        die();
 
         $styleIdArr = implode('/', $styleIdArr);
         $CarBrand -> where(array('id' => $brand_id)) -> save(array('style_id' => $styleIdArr));
 
 
-        // if ($CarStyle -> where(array('id' => $id)) -> save(array('name' => $name))) {
-        //     $param = array(
-        //         'status' => 'success'
-        //     );
-        //     $this -> ajaxReturn($param);
-        // }else {
-        //     $param = array(
-        //         'status' => 'fail'
-        //     );
-        //     $this -> ajaxReturn($param);
+        if ($CarStyle -> where(array('id' => $id)) -> save(array('name' => $name))) {
+            $param = array(
+                'code' => '200',
+                'status' => 'success'
+            );
+            $this -> ajaxReturn($param);
+        }else {
+            $param = array(
+                'code' => '400',
+                'status' => 'fail'
+            );
+            $this -> ajaxReturn($param);
+        }
+    }
+
+    // 待发布车辆 Pending Vehicle -----------------------------------------------------------------
+    public function pendingVehicleByStatusAjaxReturn() {
+        header('content-type:text/html;charset=utf-8');
+        $Dao = D('Pending_vehicle');
+        $condition = array();
+
+        if ($_POST['status'] == '-1') {
+            
+        }else {
+            $condition = array(
+                'status' => $_POST['status']
+            );
+        }
+
+        $result = $Dao -> where($condition) -> order('id desc') -> select();
+        if ($result) {
+            $param = array(
+                'code'=> '200',
+                'status'=> 'success',
+                'data'=> $result
+            );
+            $this -> ajaxReturn($param);
+        }else {
+            $param = array(
+                'code'=> '400',
+                'status'=> 'fail'
+            );
+            $this -> ajaxReturn($param);
+        }
+    }
+
+    public function pendingVehicleStatusUpdate() {              //仅限 待发布 -> 已完成
+        header("Content-Type:text/html; charset=utf-8");
+        $PendingVehicle = D('Pending_vehicle');
+
+        //数据接收
+        $car_id = $_GET['deleteId'];
+
+        //更新
+        if ($PendingVehicle -> where(array('id' => $car_id)) -> save(array('status' => 1))) {
+            $params = array(
+                'status' => 'success',
+                'info' => '待发布车辆-状态更新成功!',
+                'pageName' => 'pending_vehicle'
+            );
+            $this -> redirect('Admin/toPendingVehicle', $params);
+        }else {
+            $params = array(
+                'status' => 'fail',
+                'info' => '待发布车辆-状态更新失败!',
+                'pageName' => 'pending_vehicle'
+            );
+            $this -> redirect('Admin/toPendingVehicle', $params);
+        }
+
+    }
+
+    public function pendingVehicleDeleteById() {
+        header("Content-Type:text/html; charset=utf-8");
+        $PendingVehicle = D('Pending_vehicle');
+
+        //数据接收
+        $car_id = $_GET['deleteId'];
+
+        //删除
+        if ($PendingVehicle -> where(array('id' => $car_id)) -> delete()) {
+            $params = array(
+                'status' => 'success',
+                'info' => '待发布车辆删除成功!',
+                'pageName' => 'pending_vehicle'
+            );
+            $this -> redirect('Admin/toPendingVehicle', $params);
+        }else {
+            $params = array(
+                'status' => 'fail',
+                'info' => '待发布车辆删除失败!',
+                'pageName' => 'pending_vehicle'
+            );
+            $this -> redirect('Admin/toPendingVehicle', $params);
+        }
+    }
+
+    public function pendingVehicleNew() {
+        header("Content-Type:text/html; charset=utf-8");
+        $PendingVehicle = D('Pending_vehicle');
+
+        $result = $PendingVehicle -> where(array('status' => 0)) -> select();
+        return count($result);
+    }
+
+    public function pendingVehicleSelectById($id) {
+        header("Content-Type:text/html; charset=utf-8");
+        $PendingVehicle = D('Pending_vehicle');
+
+        $result = $PendingVehicle -> where(array('id' => $id)) -> select();
+        return $result;
+    }
+
+    public function pendingVehicleSelectByStatusAjaxReturn() {
+        header("Content-Type:text/html; charset=utf-8");
+        $PendingVehicle = D('Pending_vehicle');
+
+        //数据接收
+        $status = $_POST['status'];
+
+        //全部
+        // if ($status == '0') {
+        //     $PendingVehicle =
         // }
     }
+    // 待发布车辆 Pending Vehicle ----------------------------------------------------------------- end
 
 
 

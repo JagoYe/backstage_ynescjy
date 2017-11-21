@@ -1,0 +1,193 @@
+<html>
+	<head>
+		<title>点度后台管理</title>
+		<include file="Common:head"/>
+		<style>
+			table tbody tr { transition: all 0.3s ease-in-out; }
+			table tbody tr td span { display: inline-block; padding: 0 3px; }
+			.no-view { background: #2e3252 !important; color: #fff !important; border-top: 1px solid #fff; }
+			.no-view span i { color: #fff; }
+			.ui-datepicker select.ui-datepicker-month, .ui-datepicker select.ui-datepicker-year { height: 30px; }
+		</style>
+	</head>
+	<body>
+		<div class="wrapper admin">
+			<include file="Common:alert"/>
+			<include file="Common:adminHeader"/>
+			<div class="middle-content">
+				<include file="Common:adminSidebar"/>
+				<div class="content pull-right">
+					<div class="message">
+						<h1 class="headline text-center bold">车辆拍卖 - <span class="h1-small">拍卖中</span></h1>
+						<?php 
+							$result = A('Admin');
+							$CarSaleCount = count($result -> carSalePending());
+						 ?>
+						
+						<div class="tools">
+							<ul>
+								<li>
+									<p><a data-status="-1" class="btn btn-tools btn-search-status" href="{:U('Admin/toCarSale', array('pageName' => 'car_sale'))}">可拍车辆</a></p>
+								</li>
+								<li>
+									<p><a data-status="0" class="btn btn-tools btn-go-car-sale-pending active" href="{:U('Admin/toCarSale', array('isChild' => 'true', 'childName' => 'car_sale_pending', 'pageName' => 'car_sale'))}">拍卖中 <span class="badge car-pending-all bg-yellow"><?php echo $CarSaleCount; ?></span></a></p>
+								</li>
+								<li>
+									<p><a data-status="1" class="btn btn-tools btn-search-status" href="{:U('Admin/toCarSale', array('isChild' => 'true', 'childName' => 'car_sale_finished', 'pageName' => 'car_sale'))}">已完成</a></p>
+								</li>
+							</ul>
+						</div>
+
+						<table class="table table-striped table-hover table-pending-vehicle">
+							<thead>
+								<tr>
+									<td width="8%">城市</td>
+									<td width="8%">类别</td>
+									<td width="8%">品牌</td>
+									<td width="8%">车型</td>
+									<td width="8%">起价</td>
+									<td width="8%">涨幅</td>
+									<td width="9%">评估价</td>
+									<td width="15%">拍卖时间</td>
+									<td width="10%">当前最高价</td>
+									<td width="9%">状态</td>
+									<td width="9%">操作</td>
+								</tr>
+							</thead>
+							<tbody>
+								<?php 
+									// $result = $Dao -> carSelectAll();
+									$result = $Dao -> carSalePending();
+									// var_dump($result);
+									forEach($result as $key => $val):
+								 ?>
+								 <tr data-id="<?php echo $val['id']; ?>" class="order-view ">
+								 	<td><?php echo $val['city_name']; ?></td>
+								 	<td><?php if($val['category'] == '1'){ echo '新车'; $val['category'] = '新车'; } ?><?php if($val['category'] == '2'){ echo '二手车'; $val['category'] = '二手车'; } ?></td>
+								 	<td><?php echo $val['brand']['name']; ?></td>
+								 	<td><?php echo $val['brand']['style']; ?></td>
+								 	<td>￥<?php echo $val['car_sale']['starting_price']; ?> 万</td>
+								 	<td>￥<?php echo $val['car_sale']['amount_of_increase']; ?> 元</td>
+								 	<td>￥<?php echo $val['car_sale']['evaluate_price']; ?> 万</td>
+									<td>
+										<?php echo $val['car_sale']['starting_time']; ?>
+								 		<p>-----------------------</p>
+								 		<?php echo $val['car_sale']['ending_time']; ?>
+								 	</td>
+								 	<td>
+								 		<?php 
+								 			if ($val['best_price']) {
+								 				echo '￥'.$val["best_price"].' 万';
+								 			}else {
+								 				echo '￥0 元';
+								 			}
+								 		 ?>
+								 	</td>
+								 	<td>
+								 		<?php 
+								 			if($val['car_sale']['status'] == 0){echo '准备拍卖';}
+								 			if($val['car_sale']['status'] == 1){echo '拍卖中';}
+								 			if($val['car_sale']['status'] == 2){echo '已拍卖';}
+								 		 ?>
+								 	</td>
+								 	<td>
+								 		<span><a title="查看拍卖车辆" data-id="<?php echo $val['id']; ?>" data-tag="<?php echo $val['city_name'].' '.$val['category'].' '.$val['brand']['name'].' '.$val['brand']['style'].' '.$val['output'].' '.$val['detail'].' '.$val['mileage'].'万公里 售'.$val['price'].'万'; ?>" class="jagoFancybox-view-car-sale" href="{:U('Admin/toCarSale', array('isChild' => 'true', 'childName' => 'car_sale_pending_detail', 'pageName' => 'car_sale', 'pageId' => $val['id']))}"><i class="icon-eye-open"></i></a></span>
+								 		<span><a title="删除" data-id="<?php echo $val['id']; ?>" data-tag="<?php echo $val['city_name'].' '.$val['category'].' '.$val['brand']['name'].' '.$val['brand']['style'].' '.$val['output'].' '.$val['detail'].' '.$val['mileage'].'万公里 售'.$val['price'].'万<br>'.'起价 '.$val['car_sale']['starting_price'].'万<br>涨幅 '.$val['car_sale']['amount_of_increase'].'元<br>评估价 '.$val['car_sale']['evaluate_price'].'万'; ?>" class="jagoFancybox-delete" href="#"><i class="icon-trash"></i></a></span>
+								 	</td>
+								 </tr>
+								<?php endforeach; ?>
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div class="clear"></div>
+			</div>
+		</div>
+
+		<div class="jagoFancybox">
+			<div class="cus-table">
+				<div class="cus-table-cell">
+					<div class="box box-1">
+						<div class="jagoFancybox-confirm-ctn">
+							<div class="jagoFancybox-head">
+								<h4 class="title">停止拍车 <a href="#"><i class="icon-remove-sign pull-right jagoFancybox-cancel"></i></a></h4>
+							</div>
+							<form action="{:U('Admin/carSaleDelete')}">
+								<div class="jagoFancybox-body">
+									<p class="jagoFancybox-headline">是否停止拍卖该车辆?</p>
+									<p class="jagoFancybox-content bold"></p>
+									<div class="none">
+										<input type="text" name="deleteId">
+									</div>
+								</div>
+								<div class="jagoFancybox-btn">
+									<button type="submit" class="btn btn-primary pull-left" href="#">确认</button>
+									<a class="btn btn-default pull-right jagoFancybox-cancel" href="#">取消</a>
+								</div>
+							</form>
+						</div>
+					</div>
+
+				</div>
+			</div>
+		</div>
+
+		<script>
+		(function($) {
+			$(function() {
+				// 停止拍车
+				$('.jagoFancybox-delete').on('click', function() {
+					var id = $(this).data('id');
+					var content = $(this).data('tag');
+
+					$('.jagoFancybox').addClass('active');
+					$('.jagoFancybox .box-1').addClass('active');
+					
+					$('.box-1 .jagoFancybox-confirm-ctn input[name="deleteId"]').val(id);
+					$('.box-1 .jagoFancybox-confirm-ctn .jagoFancybox-content').html('');
+					$('.box-1 .jagoFancybox-confirm-ctn .jagoFancybox-content').append(content);
+					return false;
+				});
+
+			
+
+				$('.btn.btn-tools.cur').on('click', function() {
+					$('.btn.btn-tools.cur').removeClass('active');
+					$(this).addClass('active');
+					return false;
+				});
+
+				
+
+				
+
+				$('table').on('click', '.jagoFancybox-order-agree-refund', function() {
+					var id = $(this).data('id');
+					var content = $(this).data('tag');
+
+					$('.jagoFancybox').addClass('active');
+					$('.jagoFancybox .box-2').addClass('active');
+					
+					$('.box-2 .jagoFancybox-confirm-ctn input[name="deleteId"]').val(id);
+					$('.box-2 .jagoFancybox-confirm-ctn .jagoFancybox-content').html('');
+					$('.box-2 .jagoFancybox-confirm-ctn .jagoFancybox-content').append(content);
+					return false;
+				});
+
+				$('table').on('click', '.jagoFancybox-order-agree-check-in', function() {
+					var id = $(this).data('id');
+					var content = $(this).data('tag');
+
+					$('.jagoFancybox').addClass('active');
+					$('.jagoFancybox .box-3').addClass('active');
+					
+					$('.box-3 .jagoFancybox-confirm-ctn input[name="deleteId"]').val(id);
+					$('.box-3 .jagoFancybox-confirm-ctn .jagoFancybox-content').html('');
+					$('.box-3 .jagoFancybox-confirm-ctn .jagoFancybox-content').append(content);
+					return false;
+				});
+			});
+		})(jQuery);
+		</script>
+	</body>
+</html>
